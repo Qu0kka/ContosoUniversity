@@ -108,18 +108,24 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Student/Delete/5
-        public ActionResult Delete(int? id)
+        public ActionResult Delete(int id, bool? saveChangesError)
         {
-            if (id == null)
+            if (saveChangesError.GetValueOrDefault())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                ViewBag.ErrorMessage = "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.";
             }
-            Student student = db.Students.Find(id);
-            if (student == null)
-            {
-                return HttpNotFound();
-            }
-            return View(student);
+            return View(db.Students.Find(id));
+
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            //}
+            //Student student = db.Students.Find(id);
+            //if (student == null)
+            //{
+            //    return HttpNotFound();
+            //}
+            //return View(student);
         }
 
         // POST: Student/Delete/5
@@ -127,9 +133,20 @@ namespace ContosoUniversity.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Student student = db.Students.Find(id);
-            db.Students.Remove(student);
-            db.SaveChanges();
+            try
+            {
+                Student student = db.Students.Find(id);
+                db.Students.Remove(student);
+                db.SaveChanges();
+            }
+            catch (DataException)
+            {
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
+                return RedirectToAction("Delete", new System.Web.Routing.RouteValueDictionary {
+                { "id", id },
+                { "saveShangesError", true }});
+            }
+
             return RedirectToAction("Index");
         }
 
