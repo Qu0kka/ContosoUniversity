@@ -60,7 +60,7 @@ namespace ContosoUniversity.Controllers
 
             catch (DataException)
             {
-                // Запись ошибок в журнал (добление имени переменной после DataException)
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
                 ModelState.AddModelError("", "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.");
             }
 
@@ -89,12 +89,21 @@ namespace ContosoUniversity.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "StudentID,LastName,FirstMidName,EnrollmentDate")] Student student)
         {
-            if (ModelState.IsValid)
+            try
             {
-                db.Entry(student).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                if (ModelState.IsValid)
+                {
+                    db.Entry(student).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
             }
+            catch (DataException)
+            {
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
+                ModelState.AddModelError("", "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.");
+            }
+                    
             return View(student);
         }
 
