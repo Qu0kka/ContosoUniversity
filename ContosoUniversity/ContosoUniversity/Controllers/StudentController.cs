@@ -144,7 +144,7 @@ namespace ContosoUniversity.Controllers
                 // Запись ошибок в журнал (добавление имени переменной после DataException)
                 return RedirectToAction("Delete", new System.Web.Routing.RouteValueDictionary {
                 { "id", id },
-                { "saveShangesError", true }});
+                { "saveChangesError", true }});
             }
 
             return RedirectToAction("Index");

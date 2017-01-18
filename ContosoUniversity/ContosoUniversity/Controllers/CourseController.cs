@@ -48,11 +48,19 @@ namespace ContosoUniversity.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "CourseID,Title,Credits")] Course course)
         {
-            if (ModelState.IsValid)
+            try
             {
-                db.Courses.Add(course);
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                if (ModelState.IsValid)
+                {
+                    db.Courses.Add(course);
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
+            }
+            catch(DataException)
+            {
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
+                ModelState.AddModelError("", "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.");
             }
 
             return View(course);
@@ -80,28 +88,43 @@ namespace ContosoUniversity.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "CourseID,Title,Credits")] Course course)
         {
-            if (ModelState.IsValid)
+            try
             {
-                db.Entry(course).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                if (ModelState.IsValid)
+                {
+                    db.Entry(course).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
             }
+            catch (DataException)
+            {
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
+                ModelState.AddModelError("", "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.");
+            }
+            
             return View(course);
         }
 
         // GET: Course/Delete/5
-        public ActionResult Delete(int? id)
+        public ActionResult Delete(int id, bool? saveChangesError )
         {
-            if (id == null)
+            if (saveChangesError.GetValueOrDefault())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                ViewBag.ErrorMessage = "Не удалось сохранить изменения. Попытайтесь снова, и если проблема не будет устранена, обратитесь к своему системному администратору.";
             }
-            Course course = db.Courses.Find(id);
-            if (course == null)
-            {
-                return HttpNotFound();
-            }
-            return View(course);
+            return View(db.Courses.Find(id));
+
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            //}
+            //Course course = db.Courses.Find(id);
+            //if (course == null)
+            //{
+            //    return HttpNotFound();
+            //}
+            //return View(course);
         }
 
         // POST: Course/Delete/5
@@ -109,9 +132,19 @@ namespace ContosoUniversity.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Course course = db.Courses.Find(id);
-            db.Courses.Remove(course);
-            db.SaveChanges();
+            try
+            {
+                Course course = db.Courses.Find(id);
+                db.Courses.Remove(course);
+                db.SaveChanges();
+            }
+            catch (DataException)
+            {
+                // Запись ошибок в журнал (добавление имени переменной после DataException)
+                return RedirectToAction("Delete", new System.Web.Routing.RouteValueDictionary {
+                { "id", id },
+                { "saveChangesError", true }});
+            }
             return RedirectToAction("Index");
         }
 
