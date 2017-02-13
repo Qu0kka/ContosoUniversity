@@ -15,9 +15,28 @@ namespace ContosoUniversity.Controllers
         private SchoolContext db = new SchoolContext();
 
         // GET: Student
-        public ActionResult Index()
+        public ViewResult Index(string sortOrder)
         {
-            return View(db.Students.ToList());
+            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "Name desc" : "";
+            ViewBag.FNameSortParm = sortOrder == "FName" ? "FName desc" : "FName";
+            ViewBag.DateSortParm = sortOrder == "Date" ? "Date desc" : "Date";
+            var students = from s in db.Students select s;
+            switch (sortOrder)
+            {
+                case "Name desc":students = students.OrderByDescending(s => s.LastName);
+                    break;
+                case "FName desc":students = students.OrderByDescending(s => s.FirstMidName);
+                    break;
+                case "Date":students = students.OrderBy(s => s.EnrollmentDate);
+                    break;
+                case "Date desc": students = students.OrderByDescending(s => s.EnrollmentDate);
+                    break;
+                case "FName":students = students.OrderBy(s => s.FirstMidName);
+                    break;
+                case "Name": students = students.OrderBy(s => s.LastName);
+                    break;
+            }
+            return View(students.ToList());
         }
 
         // GET: Student/Details/5
